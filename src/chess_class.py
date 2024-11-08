@@ -65,10 +65,10 @@ class Chess:
             8: [self.piece_dict["bR1"],self.piece_dict["bN1"],self.piece_dict["bB1"],self.piece_dict["bK"],self.piece_dict["bQ"],self.piece_dict["bB2"],self.piece_dict["bN2"],self.piece_dict["bR2"]],
             7: [self.piece_dict["bP1"],self.piece_dict["bP2"],self.piece_dict["bP3"],self.piece_dict["bP4"],self.piece_dict["bP5"],self.piece_dict["bP6"],self.piece_dict["bP7"],self.piece_dict["bP8"]],
             # blank spaces 
-            6: [[" "," ","a6"]," "," "," "," "," "," "," "],
-            5: [" "," "," "," "," "," "," "," "],
-            4: [" "," "," "," "," "," "," "," "],
-            3: [" "," "," "," "," "," "," "," "],
+            6: [[" "," ","a6"],[" "," ","b6"],[" "," ","c6"],[" "," ","d6"],[" "," ","e6"],[" "," ","f6"],[" "," ","g6"],[" "," ","h6"]],
+            5: [[" "," ","a5"],[" "," ","b5"],[" "," ","c5"],[" "," ","d5"],[" "," ","e5"],[" "," ","f5"],[" "," ","g5"],[" "," ","h5"]],
+            4: [[" "," ","a4"],[" "," ","b4"],[" "," ","c4"],[" "," ","d4"],[" "," ","e4"],[" "," ","f4"],[" "," ","g4"],[" "," ","h4"]],
+            3: [[" "," ","a3"],[" "," ","b3"],[" "," ","c3"],[" "," ","d3"],[" "," ","e3"],[" "," ","f3"],[" "," ","g3"],[" "," ","h3"]],
             # white pieces
             2: [self.piece_dict["wP1"],self.piece_dict["wP2"],self.piece_dict["wP3"],self.piece_dict["wP4"],self.piece_dict["wP5"],self.piece_dict["wP6"],self.piece_dict["wP7"],self.piece_dict["wP8"]],
             1: [self.piece_dict["wR1"],self.piece_dict["wN1"],self.piece_dict["wB1"],self.piece_dict["wK"],self.piece_dict["wQ"],self.piece_dict["wB2"],self.piece_dict["wN2"],self.piece_dict["wR2"]]
@@ -105,6 +105,7 @@ class Chess:
         if valid_flag:
             self.piece = (self.quick_board[selected_space[0]],int(selected_space[1]))
             self.target = (self.quick_board[target_space[0]],int(target_space[1]))
+            return True
         else:
             return False
         
@@ -117,12 +118,41 @@ class Chess:
         """Returns a list of possible moves"""
         move_list = []
 
-        # checks for piece pos
+        # checks for piece pos and color
         current_pos = self.board[self.piece[1]][self.piece[0]]
+        color = self.board[self.piece[1]][self.piece[0]][1]
+        if color == 'b':
+            opp_color = 'w'
+        elif color == 'w':
+            opp_color = 'b'
+
         # Checks possible moves on the row
-        for index,row_state in enumerate(self.board[self.piece[1]]):
-            if row_state[2] != current_pos[2] and row_state[1] != current_pos[1]:
-                move_list.append(row_state[2])
+        for row_state in self.board[self.piece[1]]:
+            # checks if the cords are the same if they are continue
+            if row_state[2] != current_pos[2]:
+                # if next state is the opposite color piece break
+                if row_state[1] == opp_color:
+                    move_list.append(row_state[2])
+                    break
+                elif row_state[1] == color:
+                    break
+                else:
+                    move_list.append(row_state[2])
+        
+        # checks moves on the column
+        for index in self.board.keys():
+            print(index, self.board[index][self.piece[0]][1])
+            # if index == self.piece[1]:
+            #     continue
+            # elif self.board[index][self.piece[0]][1] == opp_color:
+            #     move_list.append(self.board[index][self.piece[0]][2])
+            #     print(0)
+            #     break
+            # elif self.board[index][self.piece[0]][1] == color:
+            #     print(1)
+            #     break
+            # else:
+            #     move_list.append(self.board[index][self.piece[0]][2])
         return move_list
 
 chess = Chess(2)
