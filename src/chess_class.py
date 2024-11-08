@@ -127,17 +127,37 @@ class Chess:
             opp_color = 'b'
 
         # Checks possible moves on the row
-        for row_state in self.board[self.piece[1]]:
-            # checks if the cords are the same if they are continue
-            if row_state[2] != current_pos[2]:
-                # if next state is the opposite color piece break
+        right = []
+        left = []
+
+        for index,state in enumerate(self.board[self.piece[1]]):
+            print(index)
+            if index < self.piece[0]:
+                left.append(state)
+            elif index == self.piece[0]:
+                continue
+            else:
+                right.append(state)
+        print(left, "\n", right)
+        if len(left) > 0:
+            left.reverse()
+            for row_state in left:
                 if row_state[1] == opp_color:
-                    move_list.append(row_state[2])
-                    break
+                        move_list.append(row_state[2])
+                        break
                 elif row_state[1] == color:
                     break
                 else:
                     move_list.append(row_state[2])
+
+        for row_state in right:
+            if row_state[1] == opp_color:
+                    move_list.append(row_state[2])
+                    break
+            elif row_state[1] == color:
+                break
+            else:
+                move_list.append(row_state[2])
         
         # checks moves on the column
         for index in self.board.keys():
