@@ -65,7 +65,7 @@ class Chess:
             8: [self.piece_dict["bR1"],self.piece_dict["bN1"],self.piece_dict["bB1"],self.piece_dict["bK"],self.piece_dict["bQ"],self.piece_dict["bB2"],self.piece_dict["bN2"],self.piece_dict["bR2"]],
             7: [self.piece_dict["bP1"],self.piece_dict["bP2"],self.piece_dict["bP3"],self.piece_dict["bP4"],self.piece_dict["bP5"],self.piece_dict["bP6"],self.piece_dict["bP7"],self.piece_dict["bP8"]],
             # blank spaces 
-            6: [[" "," ","a6"],[" "," ","b6"],[" "," ","c6"],[" "," ","d6"],[" "," ","e6"],[" "," ","f6"],[" "," ","g6"],[" "," ","h6"]],
+            6: [[" ","","a6"],[" "," ","b6"],[" "," ","c6"],[" "," ","d6"],[" "," ","e6"],[" "," ","f6"],[" "," ","g6"],[" "," ","h6"]],
             5: [[" "," ","a5"],[" "," ","b5"],[" "," ","c5"],[" "," ","d5"],[" "," ","e5"],[" "," ","f5"],[" "," ","g5"],[" "," ","h5"]],
             4: [[" "," ","a4"],[" "," ","b4"],[" "," ","c4"],[" "," ","d4"],[" "," ","e4"],[" "," ","f4"],[" "," ","g4"],[" "," ","h4"]],
             3: [[" "," ","a3"],[" "," ","b3"],[" "," ","c3"],[" "," ","d3"],[" "," ","e3"],[" "," ","f3"],[" "," ","g3"],[" "," ","h3"]],
@@ -83,7 +83,7 @@ class Chess:
         tcolumn = self.quick_board[target_space[0]]
         if len(list(selected_space)) == 2 and len(list(target_space)) == 2:
             if (selected_space[0] in list("abcdefgh") and int(selected_space[1]) in [1,2,3,4,5,6,7,8]) and (target_space[0] in list("abcdefgh") and int(target_space[1]) in [1,2,3,4,5,6,7,8]):
-                if self.board[selected_space[1]][scolumn] != " " and (self.board[selected_space[1]][scolumn][1] != self.board[target_space[1]][tcolumn]):
+                if self.board[selected_space[1]][scolumn][0] != " " and (self.board[selected_space[1]][scolumn][1] != self.board[target_space[1]][tcolumn][1]):
                     return True
                 else:
                     return False
@@ -107,6 +107,7 @@ class Chess:
         # predictions all possible pawn moves
         """Returns a list of possible moves"""
         pass
+
     def pred_rook(self):
         # predictions all possible rook moves
         """Returns a list of possible moves"""
@@ -158,11 +159,12 @@ class Chess:
         temp_col = [x for x in range(1,len(self.board.keys())+1)]
         temp_col = "".join(map(str,temp_col))
         temp_col = temp_col.split(str(self.piece[1]))
-        up,down = list(temp_col[1]),list(temp_col[0])
+        up,down = list(temp_col[0]),list(temp_col[1])
+        up.reverse()
         """"""
+        #print(up,f"<-{self.piece[1]}->",down)
         # checks for movement down the board
         if down != None:
-            down.reverse()
             for index in down:
                 index = int(index)
                 if self.board[index][self.piece[0]][1] == color:
@@ -174,9 +176,9 @@ class Chess:
                     move_list.append(self.board[index][self.piece[0]][2])
         # checks for movement up the board
         if up != None:
-            up.reverse()
             for index in up:
                 index = int(index)
+
                 if self.board[index][self.piece[0]][1] == color:
                     break
                 elif self.board[index][self.piece[0]][1] == opp_color:
@@ -184,11 +186,12 @@ class Chess:
                     break
                 else:
                     move_list.append(self.board[index][self.piece[0]][2])
-        
+    
         return move_list
 
 chess = Chess(2)
 chess.set_board()
-print(chess.user_inputs("a7","a7"))
-print(chess.pred_rook())
+flag = chess.user_inputs("a2","a7")
+if flag:
+    print(chess.pred_rook())
 
