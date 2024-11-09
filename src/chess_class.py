@@ -107,6 +107,34 @@ class Chess:
         # predictions all possible pawn moves
         """Returns a list of possible moves"""
         pass
+    
+    def pred_knight(self):
+        # predictions all possible knight moves
+        """Returns a list of possible moves"""
+
+        current_row = self.piece[1]
+        current_col = self.piece[0]
+        color = self.board[self.piece[1]][self.piece[0]][1]
+        # Calculate potential new positions based on the knight's movement
+        potential_moves = [
+            (current_row + 2, current_col + 1),
+            (current_row + 2, current_col - 1),
+            (current_row - 2, current_col + 1),
+            (current_row - 2, current_col - 1),
+            (current_row + 1, current_col + 2),
+            (current_row + 1, current_col - 2),
+            (current_row - 1, current_col + 2),
+            (current_row - 1, current_col - 2)
+        ]
+
+        # Validate the new positions to ensure they are within bounds
+        valid_moves = []
+        for move in potential_moves:
+            new_row, new_col = move
+            if not(new_row > 8 or new_row < 1) and not(new_col > 7 or new_col < 0):
+                if self.board[new_row][new_col][1] != color:
+                    valid_moves.append(self.board[new_row][new_col][2])
+        return valid_moves
 
     def pred_rook(self):
         # predictions all possible rook moves
@@ -114,7 +142,6 @@ class Chess:
         move_list = []
 
         # checks for piece pos and color
-        current_pos = self.board[self.piece[1]][self.piece[0]]
         color = self.board[self.piece[1]][self.piece[0]][1]
         if color == 'b':
             opp_color = 'w'
@@ -123,8 +150,7 @@ class Chess:
 
         # Checks possible moves on the row
         right = []
-        left = []
-
+        left = []          
         # splits the row into left of piece and right of piece
         for index,state in enumerate(self.board[self.piece[1]]):
             if index < self.piece[0]:
@@ -178,7 +204,6 @@ class Chess:
         if up != None:
             for index in up:
                 index = int(index)
-
                 if self.board[index][self.piece[0]][1] == color:
                     break
                 elif self.board[index][self.piece[0]][1] == opp_color:
@@ -189,9 +214,33 @@ class Chess:
     
         return move_list
 
+    def get_bishop_moves(self):
+        directions = [
+            (1, 1),  # Down-right
+            (1, -1), # Down-left
+            (-1, 1), # Up-right
+            (-1, -1) # Up-left
+        ]
+        current_row = self.piece[1]
+        current_col = self.piece[0]
+        color = self.board[self.piece[1]][self.piece[0]][1]
+        valid_moves = []
+        
+        for direction in directions:
+            for i in range(1, 8):  # Bishops can move up to 7 squares in any direction
+                new_row = current_row + i * direction[0]
+                new_col = current_col + i * direction[1]
+
+                if not(new_row > 8 or new_row < 1) and not(new_col > 7 or new_col < 0):
+                    if self.board[new_row][new_col][1] != color:
+                        valid_moves.append(self.board[new_row][new_col][2])
+                    
+        return valid_moves
+
 chess = Chess(2)
 chess.set_board()
-flag = chess.user_inputs("a2","a7")
+flag = chess.user_inputs("c2","a3")
 if flag:
-    print(chess.pred_rook())
-
+    print("rook",chess.pred_rook())
+    print("knight",chess.pred_knight())
+    print("bishop",chess.get_bishop_moves())

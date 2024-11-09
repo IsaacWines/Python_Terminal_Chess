@@ -1,2 +1,1 @@
-    for index in down:
-                print(index)
+self.piece[0]
