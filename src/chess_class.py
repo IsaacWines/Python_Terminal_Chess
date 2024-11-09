@@ -86,17 +86,11 @@ class Chess:
                 if self.board[selected_space[1]][scolumn] != " " and (self.board[selected_space[1]][scolumn][1] != self.board[target_space[1]][tcolumn]):
                     return True
                 else:
-                    print(1)
                     return False
             else:
-                print(2)
                 return False
         else:
-            print(3)
             return False
-        # except:
-        #     print(4)
-        #     return False
         
     def user_inputs(self,selected_space,target_space):
         # gets the target space and current piece from user input
@@ -130,15 +124,15 @@ class Chess:
         right = []
         left = []
 
+        # splits the row into left of piece and right of piece
         for index,state in enumerate(self.board[self.piece[1]]):
-            print(index)
             if index < self.piece[0]:
                 left.append(state)
             elif index == self.piece[0]:
                 continue
             else:
                 right.append(state)
-        print(left, "\n", right)
+        # finds all the possible left moves
         if len(left) > 0:
             left.reverse()
             for row_state in left:
@@ -149,7 +143,7 @@ class Chess:
                     break
                 else:
                     move_list.append(row_state[2])
-
+        # finds all the possible right moves
         for row_state in right:
             if row_state[1] == opp_color:
                     move_list.append(row_state[2])
@@ -160,22 +154,41 @@ class Chess:
                 move_list.append(row_state[2])
         
         # checks moves on the column
-        for index in self.board.keys():
-            print(index, self.board[index][self.piece[0]][1])
-            # if index == self.piece[1]:
-            #     continue
-            # elif self.board[index][self.piece[0]][1] == opp_color:
-            #     move_list.append(self.board[index][self.piece[0]][2])
-            #     print(0)
-            #     break
-            # elif self.board[index][self.piece[0]][1] == color:
-            #     print(1)
-            #     break
-            # else:
-            #     move_list.append(self.board[index][self.piece[0]][2])
+        """Logic for getting the index of pieces above and below selected piece"""
+        temp_col = [x for x in range(1,len(self.board.keys())+1)]
+        temp_col = "".join(map(str,temp_col))
+        temp_col = temp_col.split(str(self.piece[1]))
+        up,down = list(temp_col[1]),list(temp_col[0])
+        """"""
+        # checks for movement down the board
+        if down != None:
+            down.reverse()
+            for index in down:
+                index = int(index)
+                if self.board[index][self.piece[0]][1] == color:
+                    break
+                elif self.board[index][self.piece[0]][1] == opp_color:
+                    move_list.append(self.board[index][self.piece[0]][2])
+                    break
+                else:
+                    move_list.append(self.board[index][self.piece[0]][2])
+        # checks for movement up the board
+        if up != None:
+            up.reverse()
+            for index in up:
+                index = int(index)
+                if self.board[index][self.piece[0]][1] == color:
+                    break
+                elif self.board[index][self.piece[0]][1] == opp_color:
+                    move_list.append(self.board[index][self.piece[0]][2])
+                    break
+                else:
+                    move_list.append(self.board[index][self.piece[0]][2])
+        
         return move_list
 
 chess = Chess(2)
 chess.set_board()
-print(chess.user_inputs("a8","a7"))
+print(chess.user_inputs("a7","a7"))
 print(chess.pred_rook())
+
