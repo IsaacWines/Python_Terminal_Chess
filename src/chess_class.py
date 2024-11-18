@@ -65,9 +65,9 @@ class Chess:
             8: [self.piece_dict["bR1"],self.piece_dict["bN1"],self.piece_dict["bB1"],self.piece_dict["bK"],self.piece_dict["bQ"],self.piece_dict["bB2"],self.piece_dict["bN2"],self.piece_dict["bR2"]],
             7: [self.piece_dict["bP1"],self.piece_dict["bP2"],self.piece_dict["bP3"],self.piece_dict["bP4"],self.piece_dict["bP5"],self.piece_dict["bP6"],self.piece_dict["bP7"],self.piece_dict["bP8"]],
             # blank spaces 
-            6: [[" ","","a6"],[" "," ","b6"],[" "," ","c6"],[" "," ","d6"],[" "," ","e6"],[" "," ","f6"],[" "," ","g6"],[" "," ","h6"]],
+            6: [[" "," ","a6"],[" "," ","b6"],[" "," ","c6"],[" "," ","d6"],[" "," ","e6"],[" "," ","f6"],[" "," ","g6"],[" "," ","h6"]],
             5: [[" "," ","a5"],[" "," ","b5"],[" "," ","c5"],[" "," ","d5"],[" "," ","e5"],[" "," ","f5"],[" "," ","g5"],[" "," ","h5"]],
-            4: [[" "," ","a4"],[" "," ","b4"],[" "," ","c4"],[" "," ","d4"],[" "," ","e4"],[" "," ","f4"],[" "," ","g4"],[" "," ","h4"]],
+            4: [[" "," ","a4"],[" "," ","b4"],[" "," ","c4"],["test","b","d4"],[" "," ","e4"],[" "," ","f4"],[" "," ","g4"],[" "," ","h4"]],
             3: [[" "," ","a3"],[" "," ","b3"],[" "," ","c3"],[" "," ","d3"],[" "," ","e3"],[" "," ","f3"],[" "," ","g3"],[" "," ","h3"]],
             # white pieces
             2: [self.piece_dict["wP1"],self.piece_dict["wP2"],self.piece_dict["wP3"],self.piece_dict["wP4"],self.piece_dict["wP5"],self.piece_dict["wP6"],self.piece_dict["wP7"],self.piece_dict["wP8"]],
@@ -86,6 +86,7 @@ class Chess:
                 if self.board[selected_space[1]][scolumn][0] != " " and (self.board[selected_space[1]][scolumn][1] != self.board[target_space[1]][tcolumn][1]):
                     return True
                 else:
+                    print(2)
                     return False
             else:
                 return False
@@ -214,33 +215,92 @@ class Chess:
     
         return move_list
 
-    def get_bishop_moves(self):
+    def pred_bishop(self):
+        # predictions all possible bishop moves
+        """Returns a list of possible moves"""
         directions = [
             (1, 1),  # Down-right
             (1, -1), # Down-left
             (-1, 1), # Up-right
             (-1, -1) # Up-left
         ]
+
+        # sets rows and colors
         current_row = self.piece[1]
         current_col = self.piece[0]
         color = self.board[self.piece[1]][self.piece[0]][1]
-        valid_moves = []
+        if color == 'b':
+            opp_color = 'w'
+        elif color == 'w':
+            opp_color = 'b'
+        move_list = []
         
         for direction in directions:
             for i in range(1, 8):  # Bishops can move up to 7 squares in any direction
                 new_row = current_row + i * direction[0]
                 new_col = current_col + i * direction[1]
 
+                # color logic
                 if not(new_row > 8 or new_row < 1) and not(new_col > 7 or new_col < 0):
-                    if self.board[new_row][new_col][1] != color:
-                        valid_moves.append(self.board[new_row][new_col][2])
+
+                    if self.board[new_row][new_col][1] == color:
+                        break
+                    elif self.board[new_row][new_col][1] == opp_color:
+                        move_list.append(self.board[new_row][new_col][2])
+                        break
+                    else:
+                        move_list.append(self.board[new_row][new_col][2])
                     
-        return valid_moves
+        return move_list
+
+    def pred_king(self):
+        # predictions all possible bishop moves
+        """Returns a list of possible moves"""
+
+        directions = [
+            (0,1),
+            (0,-1),
+            (1,0),
+            (-1,0),
+            (1,1),
+            (-1,1),
+            (1,-1),
+            (-1,-1)
+        ]
+
+        # sets rows and colors
+        current_row = self.piece[1]
+        current_col = self.piece[0]
+        color = self.board[self.piece[1]][self.piece[0]][1]
+        if color == 'b':
+            opp_color = 'w'
+        elif color == 'w':
+            opp_color = 'b'
+        move_list = []
+
+        for direction in directions:
+            for i in range(1,2):  # Kings can move up to 1 squares in any direction
+                new_row = current_row + i * direction[0]
+                new_col = current_col + i * direction[1]
+
+                # color logic
+                if not(new_row > 8 or new_row < 1) and not(new_col > 7 or new_col < 0):
+                    if self.board[new_row][new_col][1] == color:
+                        break
+                    elif self.board[new_row][new_col][1] == opp_color:
+                        move_list.append(self.board[new_row][new_col][2])
+                        break
+                    else:
+                        move_list.append(self.board[new_row][new_col][2])
+                    
+        return move_list
+        
 
 chess = Chess(2)
 chess.set_board()
-flag = chess.user_inputs("c2","a3")
+flag = chess.user_inputs("d4","a3")
 if flag:
     print("rook",chess.pred_rook())
     print("knight",chess.pred_knight())
-    print("bishop",chess.get_bishop_moves())
+    print("bishop",chess.pred_bishop())
+    print("king",chess.pred_king())
