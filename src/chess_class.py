@@ -9,40 +9,40 @@ class Chess:
 
         self.piece_dict = {
             # white pieces
-            "wP1": ["wP","w","a2"],
-            "wP2": ["wP","w","b2"],
-            "wP3": ["wP","w","c2"],
-            "wP4": ["wP","w","d2"],
-            "wP5": ["wP","w","e2"],
-            "wP6": ["wP","w","f2"],
-            "wP7": ["wP","w","g2"],
-            "wP8": ["wP","w","h2"],
-            "wR1": ["wR","w","a1"],
-            "wR2": ["wR","w","h1"],
-            "wN1": ["wN","w","b1"],
-            "wN2": ["wN","w","g1"],
-            "wB1": ["wB","w","c1"],
-            "wB2": ["wB","w","f1"],
-            "wK":  ["wK","w","d1"],
-            "wQ":  ["wQ","w","e1"],
+            "wP1": ["wP", "w", "a2", 0],
+            "wP2": ["wP", "w", "b2", 0],
+            "wP3": ["wP", "w", "c2", 0],
+            "wP4": ["wP", "w", "d2", 0],
+            "wP5": ["wP", "w", "e2", 0],
+            "wP6": ["wP", "w", "f2", 0],
+            "wP7": ["wP", "w", "g2", 0],
+            "wP8": ["wP", "w", "h2", 0],
+            "wR1": ["wR", "w", "a1", 0],
+            "wR2": ["wR", "w", "h1", 0],
+            "wN1": ["wN", "w", "b1", 0],
+            "wN2": ["wN", "w", "g1", 0],
+            "wB1": ["wB", "w", "c1", 0],
+            "wB2": ["wB", "w", "f1", 0],
+            "wK": ["wK", "w", "d1", 0],
+            "wQ": ["wQ", "w", "e1", 0],
 
             # black pieces
-            "bP1": ["bP","b","a7"],
-            "bP2": ["bP","b","b7"],
-            "bP3": ["bP","b","c7"],
-            "bP4": ["bP","b","d7"],
-            "bP5": ["bP","b","e7"],
-            "bP6": ["bP","b","f7"],
-            "bP7": ["bP","b","g7"],
-            "bP8": ["bP","b","h7"],
-            "bR1": ["bR","b","a8"],
-            "bR2": ["bR","b","h8"],
-            "bN1": ["bN","b","b8"],
-            "bN2": ["bN","b","g8"],
-            "bB1": ["bB","b","c8"],
-            "bB2": ["bB","b","f8"],
-            "bK":  ["bK","b","d8"],
-            "bQ":  ["bQ","b","e8"]
+            "bP1": ["bP", "b", "a7", 0],
+            "bP2": ["bP", "b", "b7", 0],
+            "bP3": ["bP", "b", "c7", 0],
+            "bP4": ["bP", "b", "d7", 0],
+            "bP5": ["bP", "b", "e7", 0],
+            "bP6": ["bP", "b", "f7", 0],
+            "bP7": ["bP", "b", "g7", 0],
+            "bP8": ["bP", "b", "h7", 0],
+            "bR1": ["bR", "b", "a8", 0],
+            "bR2": ["bR", "b", "h8", 0],
+            "bN1": ["bN", "b", "b8", 0],
+            "bN2": ["bN", "b", "g8", 0],
+            "bB1": ["bB", "b", "c8", 0],
+            "bB2": ["bB", "b", "f8", 0],
+            "bK": ["bK", "b", "d8", 0],
+            "bQ": ["bQ", "b", "e8", 0]
         }
 
         # dict to quickly convert the board letter to a index
@@ -54,39 +54,101 @@ class Chess:
             "e": 4,
             "f": 5,
             "g": 6,
-            "h": 8
+            "h": 7
         }
-    
+
+        # dict for running the predictions
+        self.pred_dict = {
+            "bP": lambda: self.pred_pawn(),
+            "wP": lambda: self.pred_pawn(),
+            "bN": lambda: self.pred_knight(),
+            "wN": lambda: self.pred_knight(),
+            "bB": lambda: self.pred_bishop(),
+            "wB": lambda: self.pred_bishop(),
+            "bK": lambda: self.pred_king(),
+            "wK": lambda: self.pred_king(),
+            "bR": lambda: self.pred_rook(),
+            "wR": lambda: self.pred_rook()
+            # add queen and pawn
+        }
+
     def set_board(self):
         # initial board set, run pre-game
         self.board = {
-            # black pieces
-            # [self.piece_dict["bR1"],self.piece_dict["bN1"],self.piece_dict["bB1"],self.piece_dict["bK"],self.piece_dict["bQ"],self.piece_dict["bB2"],self.piece_dict["bN2"],self.piece_dict["bR2"]],
-            8: [self.piece_dict["bR1"],self.piece_dict["bN1"],self.piece_dict["bB1"],self.piece_dict["bK"],self.piece_dict["bQ"],self.piece_dict["bB2"],self.piece_dict["bN2"],self.piece_dict["bR2"]],
-            7: [self.piece_dict["bP1"],self.piece_dict["bP2"],self.piece_dict["bP3"],self.piece_dict["bP4"],self.piece_dict["bP5"],self.piece_dict["bP6"],self.piece_dict["bP7"],self.piece_dict["bP8"]],
-            # blank spaces 
-            6: [[" "," ","a6"],[" "," ","b6"],[" "," ","c6"],[" "," ","d6"],[" "," ","e6"],[" "," ","f6"],[" "," ","g6"],[" "," ","h6"]],
-            5: [[" "," ","a5"],[" "," ","b5"],[" "," ","c5"],[" "," ","d5"],[" "," ","e5"],[" "," ","f5"],[" "," ","g5"],[" "," ","h5"]],
-            4: [[" "," ","a4"],[" "," ","b4"],[" "," ","c4"],["test","b","d4"],[" "," ","e4"],[" "," ","f4"],[" "," ","g4"],[" "," ","h4"]],
-            3: [[" "," ","a3"],[" "," ","b3"],[" "," ","c3"],[" "," ","d3"],[" "," ","e3"],[" "," ","f3"],[" "," ","g3"],[" "," ","h3"]],
-            # white pieces
-            2: [self.piece_dict["wP1"],self.piece_dict["wP2"],self.piece_dict["wP3"],self.piece_dict["wP4"],self.piece_dict["wP5"],self.piece_dict["wP6"],self.piece_dict["wP7"],self.piece_dict["wP8"]],
-            1: [self.piece_dict["wR1"],self.piece_dict["wN1"],self.piece_dict["wB1"],self.piece_dict["wK"],self.piece_dict["wQ"],self.piece_dict["wB2"],self.piece_dict["wN2"],self.piece_dict["wR2"]]
+            8: [self.piece_dict["bR1"], self.piece_dict["bN1"], self.piece_dict["bB1"], self.piece_dict["bK"], self.piece_dict["bQ"], self.piece_dict["bB2"], self.piece_dict["bN2"], self.piece_dict["bR2"]],
+            7: [self.piece_dict["bP1"], self.piece_dict["bP2"], self.piece_dict["bP3"], self.piece_dict["bP4"], self.piece_dict["bP5"], self.piece_dict["bP6"], self.piece_dict["bP7"], self.piece_dict["bP8"]],
+            6: [[" ", " ", "a6", 0], [" ", " ", "b6", 0], [" ", " ", "c6", 0], [" ", " ", "d6", 0], [" ", " ", "e6", 0], [" ", " ", "f6", 0], [" ", " ", "g6", 0], [" ", " ", "h6", 0]],
+            5: [[" ", " ", "a5", 0], [" ", " ", "b5", 0], [" ", " ", "c5", 0], [" ", " ", "d5", 0], [" ", " ", "e5", 0], [" ", " ", "f5", 0], [" ", " ", "g5", 0], [" ", " ", "h5", 0]],
+            4: [[" ", " ", "a4", 0], [" ", " ", "b4", 0], [" ", " ", "c4", 0], [" ", " ", "d4", 0], [" ", " ", "e4", 0], [" ", " ", "f4", 0], [" ", " ", "g4", 0], [" ", " ", "h4", 0]],
+            3: [[" ", " ", "a3", 0], [" ", " ", "b3", 0], [" ", " ", "c3", 0], [" ", " ", "d3", 0], [" ", " ", "e3", 0], [" ", " ", "f3", 0], [" ", " ", "g3", 0], [" ", " ", "h3", 0]],
+            2: [self.piece_dict["wP1"], self.piece_dict["wP2"], self.piece_dict["wP3"], self.piece_dict["wP4"], self.piece_dict["wP5"], self.piece_dict["wP6"], self.piece_dict["wP7"], self.piece_dict["wP8"]],
+            1: [self.piece_dict["wR1"], self.piece_dict["wN1"], self.piece_dict["wB1"], self.piece_dict["wK"], self.piece_dict["wQ"], self.piece_dict["wB2"], self.piece_dict["wN2"], self.piece_dict["wR2"]]
         }
+
+    def print_board(self):
+        # Print the chess board
+        print("    a    b    c    d    e    f    g    h")
+        print("  -----------------------------------------")
+        for row in range(8, 0, -1):  # Start from row 8 to 1
+            print(f"{row} |", end="")  # Print row number
+            for col in range(8):
+                piece = self.board[row][col][0]  # Get piece name
+                if piece.strip():
+                    print(f" {piece} |", end="")
+                else:
+                    print("    |", end="")
+            print("\n  -----------------------------------------")
+
+        # Print column letters
+        print("    a    b    c    d    e    f    g    h\n")
+
+    def move_piece(self):
+        """Updates position of pieces on the board"""
+        selected_row = int(self.piece[1])
+        selected_col = int(self.piece[0])
+
+        target_row = int(self.target[1])
+        target_col = int(self.target[0])
+
+        # Get the piece being moved
+        piece = self.board[selected_row][selected_col]
+
+        # Update the move count
+        piece[3] += 1
+
+        # Move the piece to the target space
+        self.board[target_row][target_col] = piece
+
+        # Empty the original space
+        self.board[selected_row][selected_col] = [" ", " ", self.piece, 0]
     
+    def move_logic(self):
+        """Takes in the selected and target piece and moves said piece based on the prediction functions"""
+        selected_row = int(self.piece[1])
+        selected_col = int(self.piece[0])
+        target_row = int(self.target[1])
+        target_col = int(self.target[0])
+        
+        self.poss_moves = self.pred_dict[self.board[selected_row][selected_col][0]]()
+        if self.board[target_row][target_col][2] in self.poss_moves:
+            self.move_piece()        
+
     def input_validator(self,selected_space,target_space):
         # if statement to make sure selected and target spaces are valid
-        # try:
-        selected_space = [selected_space[0],int(selected_space[1])]
-        scolumn = self.quick_board[selected_space[0]]
-        target_space = [target_space[0],int(target_space[1])]
-        tcolumn = self.quick_board[target_space[0]]
+        try:
+            selected_space = [selected_space[0],int(selected_space[1])]
+            scolumn = self.quick_board[selected_space[0]]
+            target_space = [target_space[0],int(target_space[1])]
+            tcolumn = self.quick_board[target_space[0]]
+        except:
+            return False
+        if target_space[0] not in list("abcdefgh"):
+            return False
         if len(list(selected_space)) == 2 and len(list(target_space)) == 2:
             if (selected_space[0] in list("abcdefgh") and int(selected_space[1]) in [1,2,3,4,5,6,7,8]) and (target_space[0] in list("abcdefgh") and int(target_space[1]) in [1,2,3,4,5,6,7,8]):
                 if self.board[selected_space[1]][scolumn][0] != " " and (self.board[selected_space[1]][scolumn][1] != self.board[target_space[1]][tcolumn][1]):
                     return True
                 else:
-                    print(2)
                     return False
             else:
                 return False
@@ -107,6 +169,7 @@ class Chess:
     def pred_pawn(self):
         # predictions all possible pawn moves
         """Returns a list of possible moves"""
+
         pass
     
     def pred_knight(self):
@@ -141,7 +204,7 @@ class Chess:
         # predictions all possible rook moves
         """Returns a list of possible moves"""
         move_list = []
-
+    
         # checks for piece pos and color
         color = self.board[self.piece[1]][self.piece[0]][1]
         if color == 'b':
@@ -298,9 +361,13 @@ class Chess:
 
 chess = Chess(2)
 chess.set_board()
-flag = chess.user_inputs("d4","a3")
+flag = chess.user_inputs("b1","a3")
 if flag:
     print("rook",chess.pred_rook())
     print("knight",chess.pred_knight())
     print("bishop",chess.pred_bishop())
     print("king",chess.pred_king())
+    chess.print_board()
+    chess.move_logic()
+    input()
+    chess.print_board()
