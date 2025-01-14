@@ -57,6 +57,8 @@ class Chess:
             "h": 7
         }
 
+        self.quick_board_rev = {v: k for k, v in self.quick_board.items()}
+
         # dict for running the predictions
         self.pred_dict = {
             "bP": lambda: self.pred_pawn(),
@@ -68,12 +70,16 @@ class Chess:
             "bK": lambda: self.pred_king(),
             "wK": lambda: self.pred_king(),
             "bR": lambda: self.pred_rook(),
-            "wR": lambda: self.pred_rook()
-            # add queen and pawn
+            "wR": lambda: self.pred_rook(),
+            "wQ": lambda: self.pred_queen(),
+            "bQ": lambda: self.pred_queen()
         }
 
-    def set_board(self):
-        # initial board set, run pre-game
+        self.current_turn = "w"  # Track the current player's turn
+        self.bot = "b"  # Track the bot's color
+
+    def set_board(self):    
+        """Sets the initial state of the board, run before the game starts"""
         self.board = {
             8: [self.piece_dict["bR1"], self.piece_dict["bN1"], self.piece_dict["bB1"], self.piece_dict["bK"], self.piece_dict["bQ"], self.piece_dict["bB2"], self.piece_dict["bN2"], self.piece_dict["bR2"]],
             7: [self.piece_dict["bP1"], self.piece_dict["bP2"], self.piece_dict["bP3"], self.piece_dict["bP4"], self.piece_dict["bP5"], self.piece_dict["bP6"], self.piece_dict["bP7"], self.piece_dict["bP8"]],
@@ -86,7 +92,7 @@ class Chess:
         }
 
     def print_board(self):
-        # Print the chess board
+        """Prints the current state of the board"""
         print("    a    b    c    d    e    f    g    h")
         print("  -----------------------------------------")
         for row in range(8, 0, -1):  # Start from row 8 to 1
@@ -97,10 +103,16 @@ class Chess:
                     print(f" {piece} |", end="")
                 else:
                     print("    |", end="")
+            print(f" {row}", end = "")
             print("\n  -----------------------------------------")
 
         # Print column letters
         print("    a    b    c    d    e    f    g    h\n")
+
+    def debug_board(self):
+        for row in self.board.keys():
+            print(self.board[row])
+            print("-----------------")
 
     def move_piece(self):
         """Updates position of pieces on the board"""
@@ -112,16 +124,34 @@ class Chess:
 
         # Get the piece being moved
         piece = self.board[selected_row][selected_col]
-
+    
         # Update the move count
         piece[3] += 1
 
+        # Update the piece's position in piece_dict
+        piece[2] = self.board[target_row][target_col][2]
+
+        # Empty the original space
+        self.board[selected_row][selected_col] = [" ", " ", f"{self.quick_board_rev[selected_col]}{selected_row}", 0] 
+        
         # Move the piece to the target space
         self.board[target_row][target_col] = piece
 
-        # Empty the original space
-        self.board[selected_row][selected_col] = [" ", " ", self.piece, 0]
-    
+        # Change the current turn
+        if self.current_turn == "w":
+            self.current_turn = "b"
+        else:
+            self.current_turn = "w"
+
+    def possibile_moves(self):
+        """Gets all possible moves for a selected piece"""
+        selected_row = int(self.piece[1])
+        selected_col = int(self.piece[0])
+        try:
+            return self.pred_dict[self.board[selected_row][selected_col][0]]()
+        except:
+            return "No possible moves"
+
     def move_logic(self):
         """Takes in the selected and target piece and moves said piece based on the prediction functions"""
         selected_row = int(self.piece[1])
@@ -129,12 +159,18 @@ class Chess:
         target_row = int(self.target[1])
         target_col = int(self.target[0])
         
-        self.poss_moves = self.pred_dict[self.board[selected_row][selected_col][0]]()
+        try:
+            self.poss_moves = self.pred_dict[self.board[selected_row][selected_col][0]]()
+        except:
+            return False
         if self.board[target_row][target_col][2] in self.poss_moves:
-            self.move_piece()        
+            self.move_piece()    
+            return True   
+        else:
+            return False
 
     def input_validator(self,selected_space,target_space):
-        # if statement to make sure selected and target spaces are valid
+        """Validates the user input, makes sure the input is able to be used by the program"""
         try:
             selected_space = [selected_space[0],int(selected_space[1])]
             scolumn = self.quick_board[selected_space[0]]
@@ -142,22 +178,16 @@ class Chess:
             tcolumn = self.quick_board[target_space[0]]
         except:
             return False
-        if target_space[0] not in list("abcdefgh"):
+        if target_space[0] not in "abcdefgh" or selected_space[0] not in "abcdefgh" or \
+           target_space[1] not in range(1, 9) or selected_space[1] not in range(1, 9):
             return False
-        if len(list(selected_space)) == 2 and len(list(target_space)) == 2:
-            if (selected_space[0] in list("abcdefgh") and int(selected_space[1]) in [1,2,3,4,5,6,7,8]) and (target_space[0] in list("abcdefgh") and int(target_space[1]) in [1,2,3,4,5,6,7,8]):
-                if self.board[selected_space[1]][scolumn][0] != " " and (self.board[selected_space[1]][scolumn][1] != self.board[target_space[1]][tcolumn][1]):
-                    return True
-                else:
-                    return False
-            else:
-                return False
         else:
-            return False
+            return True
         
     def user_inputs(self,selected_space,target_space):
-        # gets the target space and current piece from user input
-        """self.piece = (column,row) | self.target = (column,row)"""
+        """gets the target space and current piece from user input\n
+        self.piece = (column,row)\n
+        self.target = (column,row)"""
         valid_flag = self.input_validator(selected_space,target_space)
         if valid_flag:
             self.piece = (self.quick_board[selected_space[0]],int(selected_space[1]))
@@ -166,11 +196,116 @@ class Chess:
         else:
             return False
         
+    def game_condiition(self):
+        """
+        Check and create the win condiition flag.
+
+            Args:
+                self
+            Returns:
+                True - if win condition is False\n
+                False - if win condition is True
+        """
+        # checks for checkmate, or draw 
+        return True
+        
     def pred_pawn(self):
         # predictions all possible pawn moves
         """Returns a list of possible moves"""
+        move_list = []
+        current_row = self.piece[1]
+        current_col = self.piece[0]
+        color = self.board[current_row][current_col][1]
 
-        pass
+        if color == 'b':
+            opp_color = 'w'
+        elif color == 'w':
+            opp_color = 'b'
+
+        # check for the two move rule
+        if color == 'w':
+            if self.board[current_row][current_col][3] == 0:
+                potential_moves = [
+                    (current_row + 1, current_col + 1, 1),
+                    (current_row + 1, current_col - 1, 1),
+                    (current_row + 1, current_col, 2),
+                    (current_row + 2, current_col, 0)               
+                ]
+
+                for move in potential_moves:
+                    new_row, new_col, sig = move
+                    if not(new_row > 8 or new_row < 1) and not(new_col > 7 or new_col < 0):
+                        
+                        if sig == 1:
+                            if self.board[new_row][new_col][1] == opp_color:
+                                move_list.append(self.board[new_row][new_col][2])
+                        elif sig == 2:
+                            if self.board[new_row][new_col][1] == " ":
+                                move_list.append(self.board[new_row][new_col][2])
+                            else:
+                                break
+                        else:
+                            if self.board[new_row][new_col][1] == " ":
+                                move_list.append(self.board[new_row][new_col][2])
+            else:
+                potential_moves = [
+                    (current_row + 1, current_col, 0),
+                    (current_row + 1, current_col + 1, 1),
+                    (current_row + 1, current_col - 1, 1)
+                ]
+
+                for move in potential_moves:
+                    new_row, new_col, sig = move
+                    if not(new_row > 8 or new_row < 1) and not(new_col > 7 or new_col < 0):
+                        
+                        if sig == 1:
+                            if self.board[new_row][new_col][1] == opp_color:
+                                move_list.append(self.board[new_row][new_col][2])
+                        else:
+                            if self.board[new_row][new_col][1] == " ":
+                                move_list.append(self.board[new_row][new_col][2])
+        elif color == 'b':
+            if self.board[current_row][current_col][3] == 0:
+                potential_moves = [
+                    (current_row - 1, current_col + 1, 1),
+                    (current_row - 1, current_col - 1, 1),
+                    (current_row - 1, current_col, 2),
+                    (current_row - 2, current_col, 0)               
+                ]
+
+                for move in potential_moves:
+                    new_row, new_col, sig = move
+                    if not(new_row > 8 or new_row < 1) and not(new_col > 7 or new_col < 0):
+                        
+                        if sig == 1:
+                            if self.board[new_row][new_col][1] == opp_color:
+                                move_list.append(self.board[new_row][new_col][2])
+                        elif sig == 2:
+                            if self.board[new_row][new_col][1] == " ":
+                                move_list.append(self.board[new_row][new_col][2])
+                            else:
+                                break
+                        else:
+                            if self.board[new_row][new_col][1] == " ":
+                                move_list.append(self.board[new_row][new_col][2])
+            else:
+                potential_moves = [
+                    (current_row - 1, current_col, 0),
+                    (current_row - 1, current_col + 1, 1),
+                    (current_row - 1, current_col - 1, 1)
+                ]
+
+                for move in potential_moves:
+                    new_row, new_col, sig = move
+                    if not(new_row > 8 or new_row < 1) and not(new_col > 7 or new_col < 0):
+                        
+                        if sig == 1:
+                            if self.board[new_row][new_col][1] == opp_color:
+                                move_list.append(self.board[new_row][new_col][2])
+                        else:
+                            if self.board[new_row][new_col][1] == " ":
+                                move_list.append(self.board[new_row][new_col][2])
+        return move_list
     
     def pred_knight(self):
         # predictions all possible knight moves
@@ -223,6 +358,7 @@ class Chess:
                 continue
             else:
                 right.append(state)
+
         # finds all the possible left moves
         if len(left) > 0:
             left.reverse()
@@ -234,6 +370,7 @@ class Chess:
                     break
                 else:
                     move_list.append(row_state[2])
+
         # finds all the possible right moves
         for row_state in right:
             if row_state[1] == opp_color:
@@ -252,7 +389,7 @@ class Chess:
         up,down = list(temp_col[0]),list(temp_col[1])
         up.reverse()
         """"""
-        #print(up,f"<-{self.piece[1]}->",down)
+
         # checks for movement down the board
         if down != None:
             for index in down:
@@ -264,6 +401,7 @@ class Chess:
                     break
                 else:
                     move_list.append(self.board[index][self.piece[0]][2])
+
         # checks for movement up the board
         if up != None:
             for index in up:
@@ -317,7 +455,7 @@ class Chess:
         return move_list
 
     def pred_king(self):
-        # predictions all possible bishop moves
+        # predictions all possible king moves
         """Returns a list of possible moves"""
 
         directions = [
@@ -357,17 +495,91 @@ class Chess:
                         move_list.append(self.board[new_row][new_col][2])
                     
         return move_list
-        
+    
+    def pred_queen(self):
+        # predictions all possible queen moves
+        """Returns a list of possible moves"""
+        move_list = []
+        current_row = self.piece[1]
+        current_col = self.piece[0]
+        color = self.board[current_row][current_col][1]
 
-chess = Chess(2)
-chess.set_board()
-flag = chess.user_inputs("b1","a3")
-if flag:
-    print("rook",chess.pred_rook())
-    print("knight",chess.pred_knight())
-    print("bishop",chess.pred_bishop())
-    print("king",chess.pred_king())
-    chess.print_board()
-    chess.move_logic()
-    input()
-    chess.print_board()
+        if color == 'b':
+            opp_color = 'w'
+        elif color == 'w':
+            opp_color = 'b'
+
+        up = [(current_row + x, current_col) for x in range(1,8)]
+        down = [(current_row - x, current_col) for x in range(1,8)]
+        dia_up_right = [(current_row + x, current_col + x) for x in range(1,8)]
+        dia_up_left = [(current_row + x, current_col - x) for x in range(1,8)]
+        dia_down_right = [(current_row - x, current_col + x) for x in range(1,8)]
+        dia_down_left = [(current_row - x, current_col - x) for x in range(1,8)]
+        all_moves = [up,down,dia_up_right,dia_up_left,dia_down_right,dia_down_left]
+
+        for direction in all_moves:
+            for move in direction:
+                new_row, new_col = move
+                if not(new_row > 8 or new_row < 1) and not(new_col > 7 or new_col < 0):
+                    if self.board[new_row][new_col][1] == color:
+                        break
+                    elif self.board[new_row][new_col][1] == opp_color:
+                        move_list.append(self.board[new_row][new_col][2])
+                        break
+                    else:
+                        move_list.append(self.board[new_row][new_col][2])
+
+        return move_list
+
+def test():
+    players = input("Enter number of players: ")
+    chess = Chess(players)
+    chess.set_board()
+    flag = True
+
+    while flag:
+        chess.print_board()
+        command = input("Enter a command: ")
+        if command == "move":
+            print("Current Turn: ",chess.current_turn)
+            current = input("Select a piece: ")
+            target = input("Select a target: ")
+            input_flag = chess.user_inputs(current,target)
+            
+            if input_flag:
+                if chess.current_turn != chess.board[chess.piece[1]][chess.piece[0]][1]:
+                    print("Invalid Turn")
+                    input()
+                elif not chess.move_logic():
+                    print("Invalid Move")
+                    input()
+            else:
+                print("Invalid Input")
+                input()
+
+        if command == "exit":
+            flag = False
+
+        if command == "poss":
+            current = input("Select a piece: ")
+            target = "a1"
+            if chess.user_inputs(current,target):
+                print(f"Possible moves for {current}: {chess.possibile_moves()}")
+                input()
+            else:
+                print("Input Error")
+        
+        if command == "debug":
+            chess.debug_board()
+            input()
+            # print("pawn",chess.pred_pawn())
+            # print("rook",chess.pred_rook())
+            # print("knight",chess.pred_knight())
+            # print("bishop",chess.pred_bishop())
+            # print("king",chess.pred_king())
+            # print("queen",chess.pred_queen())
+            input()
+
+if __name__ == "__main__":
+    test()
+        
