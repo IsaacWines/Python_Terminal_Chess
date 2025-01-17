@@ -497,8 +497,7 @@ class Chess:
         return move_list
     
     def pred_queen(self):
-        # predictions all possible queen moves
-        """Returns a list of possible moves"""
+        """Returns a list of possible moves for the queen, including all directions."""
         move_list = []
         current_row = self.piece[1]
         current_col = self.piece[0]
@@ -508,28 +507,34 @@ class Chess:
             opp_color = 'w'
         elif color == 'w':
             opp_color = 'b'
-
-        up = [(current_row + x, current_col) for x in range(1,8)]
-        down = [(current_row - x, current_col) for x in range(1,8)]
-        dia_up_right = [(current_row + x, current_col + x) for x in range(1,8)]
-        dia_up_left = [(current_row + x, current_col - x) for x in range(1,8)]
-        dia_down_right = [(current_row - x, current_col + x) for x in range(1,8)]
-        dia_down_left = [(current_row - x, current_col - x) for x in range(1,8)]
-        all_moves = [up,down,dia_up_right,dia_up_left,dia_down_right,dia_down_left]
+        
+        up = [(current_row + x, current_col) for x in range(1, 8)]
+        down = [(current_row - x, current_col) for x in range(1, 8)]
+        left = [(current_row, current_col - x) for x in range(1, 8)]
+        right = [(current_row, current_col + x) for x in range(1, 8)]
+        dia_up_right = [(current_row + x, current_col + x) for x in range(1, 8)]
+        dia_up_left = [(current_row + x, current_col - x) for x in range(1, 8)]
+        dia_down_right = [(current_row - x, current_col + x) for x in range(1, 8)]
+        dia_down_left = [(current_row - x, current_col - x) for x in range(1, 8)]
+        
+        # Include left and right
+        all_moves = [up, down, left, right, dia_up_right, dia_up_left, dia_down_right, dia_down_left]
 
         for direction in all_moves:
             for move in direction:
                 new_row, new_col = move
-                if not(new_row > 8 or new_row < 1) and not(new_col > 7 or new_col < 0):
-                    if self.board[new_row][new_col][1] == color:
+                # Check if the move is within bounds
+                if not (new_row > 8 or new_row < 1) and not (new_col > 7 or new_col < 0):
+                    if self.board[new_row][new_col][1] == color:  # Same color piece
                         break
-                    elif self.board[new_row][new_col][1] == opp_color:
+                    elif self.board[new_row][new_col][1] == opp_color:  # Opponent's piece
                         move_list.append(self.board[new_row][new_col][2])
                         break
-                    else:
+                    else:  # Empty square
                         move_list.append(self.board[new_row][new_col][2])
 
         return move_list
+
 
 def test():
     players = input("Enter number of players: ")
